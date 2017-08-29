@@ -1,0 +1,72 @@
+##################################
+#	        Settings file          #
+##################################
+#   Keys are given as keycode,   #
+#   read the keycode.txt file    #
+##################################
+#                                #
+# Note: Make sure you use spaces #
+# for indentation, not tabs!     #
+#                                #
+##################################
+
+# Settings related to the game window
+window:
+  fullscreen: false
+  width: 768
+  height: 512
+
+# Settings related to the controls
+controls:
+
+
+  zoom_speed:
+    slow: 0.4
+    fast: 1.2
+
+  increase_zoom_keys:
+    - 17   # R
+
+  decrease_zoom_keys:
+    - 5    # F
+
+  speed_keys:
+    - 38   # LShift
+    - 21   # V
+
+  up_keys:
+    - 22   # W
+    - 73   # Up arrow
+
+  right_keys:
+    - 3    # D
+    - 72   # Right arrow
+
+  down_keys:
+    - 18   # S
+    - 74   # Down arrow
+
+  left_keys:
+    - 0    # A
+    - 71   # Left Arrow
+
+  # Allow scrolling to be done with the mouse?
+  allow_mouse_scroll: false
+
+  # Allow offscreen scrolling
+  offscreen_scroll: true
+
+  # Allow both keyboard and mouse scrolling at the same time?
+  allow_double_scroll: false
+
+  # Speeds of scrolling
+  scroll_speed:
+    slow: 60
+    fast: 170
+
+  # Triggers for mouse based scrolling
+  triggers:
+    left: 0.2
+    right: 0.8
+    top: 0.2
+    down: 0.8
