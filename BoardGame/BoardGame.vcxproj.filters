@@ -39,6 +39,9 @@
     <ClCompile Include="source\Board\Entities\DemoEntity.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="source\Board\Buildings\Windmill.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Board\Board.h">
@@ -75,6 +78,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="source\Board\Entities\DemoEntity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Board\Buildings\Windmill.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

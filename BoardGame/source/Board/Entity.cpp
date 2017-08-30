@@ -9,6 +9,15 @@ sf::Vector2i Entity::getPosition()
 
 void Entity::setPosition(sf::Vector2i nPos)
 {
+	Tile actual = owner->game->board->getTile(getPosition().x, getPosition().y);
+	Tile newPos = owner->game->board->getTile(nPos.x, nPos.y);
+
+	actual.entityOnTop = NULL;
+	newPos.entityOnTop = this;
+
+	owner->game->board->setTile(getPosition().x, getPosition().y, actual);
+	owner->game->board->setTile(nPos.x, nPos.y, newPos);
+
 	position = nPos;
 }
 
@@ -47,7 +56,8 @@ void Entity::fillView()
 			if (std::roundf(dist) < viewRadius)
 			{
 				int i = oy * owner->game->board->width + ox;
-				if (i >= 0 && i < owner->game->board->width * owner->game->board->height)
+				if (i >= 0 && i < owner->game->board->width * owner->game->board->height 
+					&& ox < owner->game->board->width && oy < owner->game->board->height)
 				{
 					owner->view[i] = 2;
 				}

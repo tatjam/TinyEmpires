@@ -8,24 +8,10 @@
 #include "Board/Entities/Entities.h"
 
 
-#ifdef _DEBUG
-#define IF_DEBUG if(true)
-#else
-#define IF_DEBUG if(false)
-#endif
 int main(void)
 {    
 
 	std::cout << "RTS - GAME: ";
-	IF_DEBUG
-	{
-		std::cout << "[DEBUG MODE ACTIVE]" << std::endl;
-		std::cout << "Perfomance may be compromised" << std::endl;
-	}
-	else
-	{
-		std::cout << "[RELEASE]" << std::endl;
-	}
 
 	SettingsManager settings = SettingsManager();
 	settings.load("res/settings.yaml");
@@ -48,18 +34,17 @@ int main(void)
 	
 	game.start(&spriteSheet, 8);
 
-	Empire empire = Empire(&game);
-	House house = House(game.board);
-	DemoEntity entity = DemoEntity(&empire);
+	game.addEmpire();
+	Empire* empire = &game.empires[0];
+	Windmill house = Windmill(game.board);
+	DemoEntity entity = DemoEntity(empire);
 	entity.setPosition({ 7, 8 });
 
-	house.setPosition({ 6, 4 });
-	empire.buildings.push_back(&house);
-	empire.entities.push_back(&entity);
+	house.setPosition({ 4, 4 });
+	empire->buildings.push_back(&house);
+	empire->entities.push_back(&entity);
 
 	house.start();
-
-	game.empires.push_back(empire);
 
 	game.rerender();
 
@@ -74,7 +59,7 @@ int main(void)
 	sf::View view = sf::View();
 	view.reset(sf::FloatRect(0, 0, 512.0f, 512.0f));
 
-	empire.launchViewThread();
+	empire->launchViewThread();
 
 	while (win->isOpen())
 	{
@@ -98,7 +83,7 @@ int main(void)
 		win->clear();
 	
 		game.draw(win);
-		empire.drawView(win);
+		game.drawUI(win);
 
 		win->display();
 		

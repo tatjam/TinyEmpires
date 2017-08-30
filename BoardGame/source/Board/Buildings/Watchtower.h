@@ -21,6 +21,8 @@ public:
 	{
 		setViewRadius(16);
 		setTexRect(sf::IntRect(3, 3, 2, 3));
+		setBuildingTexRect(sf::IntRect(7, 3, 2, 3));
+		setMaxHealth(450);
 	}
 
 	~Watchtower() {}

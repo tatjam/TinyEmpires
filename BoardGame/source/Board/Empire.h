@@ -29,6 +29,10 @@ public:
 	// Not using std::vector<bool> because of its speed
 	std::vector<uint8_t> view;
 
+	// View to use, use this as view is usually being used by the
+	// worker thread
+	std::vector<uint8_t> viewFinal;
+
 	bool viewReady = false;
 
 	sf::Image rendered;
@@ -55,7 +59,10 @@ public:
 	void updateView();
 	void drawView(sf::RenderTarget* target);
 
+
 	void launchViewThread();
+
+	void end();
 
 	Empire(GameState* gm);
 	~Empire();

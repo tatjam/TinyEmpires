@@ -9,7 +9,6 @@ void Empire::update(float dt)
 	for (size_t i = 0; i < buildings.size(); i++)
 	{
 		buildings[i]->pretick(dt, this);
-		
 	}
 
 	for (size_t i = 0; i < entities.size(); i++)
@@ -19,7 +18,9 @@ void Empire::update(float dt)
 
 	for (size_t i = 0; i < buildings.size(); i++)
 	{
+		buildings[i]->baseUpdate(dt, this);
 		buildings[i]->tick(dt, this);
+		buildings[i]->build(50.0f * dt);
 	}
 
 	for (size_t i = 0; i < entities.size(); i++)
@@ -32,19 +33,28 @@ void Empire::update(float dt)
 
 void Empire::draw(sf::RenderTarget* target, sf::Texture* spriteSheet, size_t tileSide)
 {
-	for (size_t i = 0; i < buildings.size(); i++)
-	{
-		buildings[i]->draw(target, spriteSheet, tileSide);
-	}
+
 
 	for (size_t i = 0; i < entities.size(); i++)
 	{
 		entities[i]->draw(target, spriteSheet, tileSide);
 	}
+
+	for (size_t i = 0; i < buildings.size(); i++)
+	{
+		buildings[i]->draw(target, spriteSheet, tileSide);
+		buildings[i]->drawDamage(target, spriteSheet, tileSide);
+	}
+
 }
 
 void Empire::renderWholeView()
 {
+	if (game->board == NULL)
+	{
+		return;
+	}
+
 	viewJustFinishing = true;
 
 	renderedBuffer.create(game->board->width, game->board->height);
@@ -54,6 +64,12 @@ void Empire::renderWholeView()
 		for (size_t y = 0; y < game->board->height; y++)
 		{
 			size_t i = y * game->board->width + x;
+
+			// Safety
+			if (i > view.size())
+			{
+				return;
+			}
 
 			if (view[i] == 2)
 			{
@@ -70,8 +86,7 @@ void Empire::renderWholeView()
 			
 		}
 	}
-
-
+	
 	// Call all buildings
 	for (size_t i = 0; i < buildings.size(); i++)
 	{
@@ -90,6 +105,12 @@ void Empire::renderWholeView()
 		{
 			size_t i = y * game->board->width + x;
 			sf::Color c;
+
+			// Safety
+			if (i > view.size())
+			{
+				return;
+			}
 
 			if (view[i] == 0)
 			{
@@ -112,6 +133,8 @@ void Empire::renderWholeView()
 		}
 	}
 
+	viewFinal = view;
+
 	rendered = renderedBuffer;
 
 	viewJustFinishing = false;
@@ -131,6 +154,7 @@ void Empire::drawView(sf::RenderTarget* target)
 	if (needsReload)
 	{
 		prevRenderedT = renderedT;
+
 
 		renderedT.loadFromImage(rendered);
 		// Disable for horribly ugly FOV
@@ -166,22 +190,27 @@ Empire::Empire(GameState* s)
 {
 	view = std::vector<uint8_t>();
 	view.resize(s->board->width * s->board->height);
+	viewFinal = std::vector<uint8_t>();
+	viewFinal.resize(s->board->width * s->board->height);
 	game = s;
 }
 
 
 Empire::~Empire()
 {
+	end();
+}
+
+void Empire::end()
+{
 	// Finish the thread
 	if (viewThread != NULL)
 	{
 		viewThreadRun = false;
-		if (viewThread->joinable())
-		{
-			viewThread->join();
-		}
+		viewThread->join();
 
 		delete viewThread;
+		viewThread = NULL;
 	}
 }
 

@@ -8,6 +8,7 @@
 #include <algorithm>
 
 class Building;
+class Entity;
 
 // Spritesheet must contain 16*16 tiles
 
@@ -65,8 +66,11 @@ struct Tile
 	// Variate resource image?
 	bool variation = false;
 
+	float resourceHealth = 0.0f;
+
 	// Building on top of this tile
 	Building* onTop = NULL;
+	Entity* entityOnTop = NULL;
 
 	Tile(){}
 	Tile(FloorType floor, WallType wall)

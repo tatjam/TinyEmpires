@@ -24,6 +24,10 @@ struct AIPlayer
 
 class GameState
 {
+private:
+
+	float maptimer = 0.0f;
+
 public:
 
 	SettingsManager* sets;
@@ -32,18 +36,30 @@ public:
 
 	std::vector<Empire> empires;
 
+	sf::Image minimap;
+	sf::Texture minimapT;
+
 	Player player;
 
 	Board* board;
 
 	void update(float dt, sf::RenderWindow* win);
 
+	void userUpdate(float dt, sf::RenderWindow* win);
+
+	void cameraUpdate(float dt, sf::RenderWindow* win);
+
+	void renderMinimap();
+
 	void start(sf::Texture* spriteSheet, size_t spriteWidth);
 	void rerender();
 
 	void draw(sf::RenderTarget* target);
+	void drawUI(sf::RenderTarget* target);
 
 	bool getAnyKeyDown(std::vector<Key>* keys);
+
+	void addEmpire();
 
 	GameState(SettingsManager* sets);
 	~GameState();

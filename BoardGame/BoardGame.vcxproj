@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\Board\Buildings\Windmill.cpp" />
     <ClCompile Include="source\Board\Entities\DemoEntity.cpp" />
     <ClCompile Include="source\Board\Entity.cpp" />
     <ClCompile Include="source\Board\Empire.cpp" />
@@ -29,6 +30,7 @@
     <ClCompile Include="Source\Main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="source\Board\Buildings\Windmill.h" />
     <ClInclude Include="source\Board\Entities\DemoEntity.h" />
     <ClInclude Include="source\Board\Entities\Entities.h" />
     <ClInclude Include="source\Board\Entity.h" />

@@ -6,6 +6,12 @@ class Empire;
 
 struct PathCosts;
 
+enum OrderType
+{
+	MOVE,
+	ATTACK,
+	BUILD
+};
 
 class Entity
 {
@@ -82,6 +88,8 @@ public:
 
 	// damage can be used to heal too!
 	virtual void damage(int damage);
+
+	virtual void giveOrder(OrderType order, sf::Vector2i target) {}
 
 	// Called automatically, handles internal movement
 	void updateMovement(float dt);
