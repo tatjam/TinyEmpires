@@ -24,7 +24,8 @@ struct ControlSettings
 	float scrollSpeed[2] = { 40.0f, 120.0f };
 
 	float cameraZoomSpeed[2] = { 0.4f, 1.2f };
-	std::vector<Key> speedKeys = { ST_KEY::LShift, ST_KEY::V };
+	std::vector<Key> speedKeys = { ST_KEY::LControl, ST_KEY::V };
+	std::vector<Key> multiSelectKeys = { ST_KEY::LShift };
 	std::vector<Key> upKeys = { ST_KEY::W, ST_KEY::Up };
 	std::vector<Key> rightKeys = { ST_KEY::D, ST_KEY::Right };
 	std::vector<Key> downKeys = { ST_KEY::S, ST_KEY::Down };

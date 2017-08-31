@@ -19,7 +19,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="LICENSE" />
     <ClCompile Include="source\Board\Buildings\Windmill.cpp" />
     <ClCompile Include="source\Board\Entities\DemoEntity.cpp" />
     <ClCompile Include="source\Board\Entity.cpp" />

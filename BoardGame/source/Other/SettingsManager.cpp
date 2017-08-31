@@ -25,6 +25,8 @@ void SettingsManager::load(std::string path)
 		cSets.scrollSpeed[0] = config["controls"]["scroll_speed"]["slow"].as<float>();
 		cSets.scrollSpeed[1] = config["controls"]["scroll_speed"]["fast"].as<float>();
 
+		cSets.multiSelectKeys = loadKeys(&config["controls"]["select_multiple_keys"]);
+		cSets.speedKeys = loadKeys(&config["controls"]["speed_keys"]);
 		cSets.upKeys = loadKeys(&config["controls"]["up_keys"]);
 		cSets.rightKeys = loadKeys(&config["controls"]["right_keys"]);
 		cSets.downKeys = loadKeys(&config["controls"]["down_keys"]);

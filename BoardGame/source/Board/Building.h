@@ -34,6 +34,11 @@ private:
 
 	size_t id = 0;
 
+	Empire* owner;
+
+	bool selected;
+	Empire* selector;
+
 public:
 
 	virtual sf::Vector2i getPosition();
@@ -47,6 +52,11 @@ public:
 
 	void build(float increase);
 	float getBuildProgress() {return buildProgress;}
+
+	virtual void select(Empire* selector);
+	virtual void unselect(Empire* selector);
+
+	virtual bool isSelected() { return selected; }
 
 	virtual void setTexRect(sf::IntRect nRect);
 	virtual void setBuildingTexRect(sf::IntRect nRect);

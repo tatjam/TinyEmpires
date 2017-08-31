@@ -70,6 +70,9 @@ private:
 
 	Order activeOrder = Order();
 
+	bool selected = false;
+	Empire* selector;
+
 public:
 
 	virtual sf::Vector2i getPosition();
@@ -86,6 +89,16 @@ public:
 	virtual void fillView();
 
 	virtual void draw(sf::RenderTarget* target, sf::Texture* spriteSheet, size_t tileSide);
+
+	// Called when you are clicked on
+	// selector is always the player's empire
+	// AIs issue orders without selecting
+	virtual void select(Empire* selector);
+
+	// Called when being deselected
+	virtual void unselect(Empire* selector);
+
+
 
 	virtual void pretick(float dt){}
 	virtual void tick(float dt) {}

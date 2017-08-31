@@ -19,6 +19,8 @@ window:
 # Settings related to the controls
 controls:
 
+  select_multiple_keys:
+    - 38   #LShift
 
   zoom_speed:
     slow: 0.4
@@ -31,7 +33,7 @@ controls:
     - 5    # F
 
   speed_keys:
-    - 38   # LShift
+    - 37   # LCTRL
     - 21   # V
 
   up_keys:
@@ -61,8 +63,8 @@ controls:
 
   # Speeds of scrolling
   scroll_speed:
-    slow: 60
-    fast: 170
+    slow: 180
+    fast: 360
 
   # Triggers for mouse based scrolling
   triggers:

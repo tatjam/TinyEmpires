@@ -74,6 +74,36 @@ void Entity::draw(sf::RenderTarget* target, sf::Texture* spriteSheet, size_t til
 		(float)getPosition().y * (float)tileSide + offset.y * (float)tileSide);
 
 	target->draw(sprite);
+
+	if (selected)
+	{
+		// Draw selected overlay
+
+		if (selector == owner)
+		{
+			// Blue selector
+			sprite.setTextureRect(sf::IntRect(13 * tileSide, 11 * tileSide, tileSide, tileSide));
+		}
+		else
+		{
+			// Red selector (we are enemies of player)
+			sprite.setTextureRect(sf::IntRect(12 * tileSide, 11 * tileSide, tileSide, tileSide));
+		}
+
+		target->draw(sprite);
+	}
+}
+
+void Entity::select(Empire* selector)
+{
+	selected = true;
+	this->selector = selector;
+}
+
+void Entity::unselect(Empire* selector)
+{
+	selected = false;
+	this->selector = NULL;
 }
 
 void Entity::damage(int damage)

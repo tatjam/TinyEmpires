@@ -1,6 +1,9 @@
 #pragma once
 #include "Board.h"
 #include "../Other/SettingsManager.h"
+#include "Entity.h"
+#include "Building.h"
+
 
 class Empire;
 class Board;
@@ -21,12 +24,21 @@ struct AIPlayer
 };
 
 
+class Entity;
+class Building;
 
 class GameState
 {
 private:
 
 	float maptimer = 0.0f;
+
+	sf::Vector2f clickPos;
+	sf::Vector2f newPos;
+	bool inSelection = false;
+
+	std::vector<Entity*> selected;
+	std::vector<Building*> selectedBuildings;
 
 public:
 

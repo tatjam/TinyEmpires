@@ -15,6 +15,18 @@ void Building::build(float increase)
 	buildProgress += increase;
 }
 
+void Building::select(Empire* selector)
+{
+	selected = true;
+	this->selector = selector;
+}
+
+void Building::unselect(Empire* selector)
+{
+	selected = false;
+	this->selector = selector;
+}
+
 void Building::setTexRect(sf::IntRect nRect)
 {
 	texRect = nRect;
@@ -98,6 +110,11 @@ void Building::fillView(Empire* owner)
 
 void Building::baseUpdate(float dt, Empire* owner)
 {
+	if (this->owner != owner)
+	{
+		this->owner = owner;
+	}
+
 	fireTimer += dt;
 
 	if (fireTimer >= 1.5f)
@@ -176,6 +193,40 @@ void Building::draw(sf::RenderTarget* target, sf::Texture* spriteSheet, size_t t
 
 		sprite.setPosition((float)(getPosition().x * tileSide), (float)(getPosition().y * tileSide));
 
+		target->draw(sprite);
+	}
+
+	if (isSelected())
+	{
+		if (selector == owner)
+		{
+			// Player selected his building
+			sprite.setTextureRect(sf::IntRect(0, 9 * tileSide, tileSide, tileSide));
+		}
+		else
+		{
+			// Enemy building
+			sprite.setTextureRect(sf::IntRect(0, 10 * tileSide, tileSide, tileSide));
+		}
+
+		// Top left
+		sprite.setTextureRect(sf::IntRect(12 * tileSide, sprite.getTextureRect().top, tileSide, tileSide));
+		sprite.setPosition(getPosition().x * tileSide, getPosition().y * tileSide);
+		target->draw(sprite);
+
+		// Top right
+		sprite.setTextureRect(sf::IntRect(13 * tileSide, sprite.getTextureRect().top, tileSide, tileSide));
+		sprite.setPosition((getPosition().x + getSize().x - 1) * tileSide, getPosition().y * tileSide);
+		target->draw(sprite);
+
+		// Bottom left
+		sprite.setTextureRect(sf::IntRect(14 * tileSide, sprite.getTextureRect().top, tileSide, tileSide));
+		sprite.setPosition(getPosition().x * tileSide, (getPosition().y + getSize().y - 1) * tileSide);
+		target->draw(sprite);
+
+		// Bottom right
+		sprite.setTextureRect(sf::IntRect(15 * tileSide, sprite.getTextureRect().top, tileSide, tileSide));
+		sprite.setPosition((getPosition().x + getSize().x - 1) * tileSide, (getPosition().y + getSize().y - 1) * tileSide);
 		target->draw(sprite);
 	}
 }

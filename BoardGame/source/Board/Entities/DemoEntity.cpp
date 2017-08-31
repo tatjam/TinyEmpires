@@ -17,8 +17,9 @@ void DemoEntity::tick(float dt)
 
 	}
 
-	if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && win != NULL && win->hasFocus())
+	if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Right) && win != NULL && win->hasFocus())
 	{
+
 		if (!isOnPath())
 		{
 			// Path to clicked
