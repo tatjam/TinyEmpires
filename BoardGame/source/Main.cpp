@@ -22,7 +22,7 @@ int main(void)
 	sf::Event ev;
 
 	sf::Image spriteImage = sf::Image();
-	spriteImage.loadFromFile("res/sprites8x8.png");
+	spriteImage.loadFromFile("res/sprites16x16.png");
 	sf::Texture spriteSheet = sf::Texture();
 	spriteSheet.loadFromImage(spriteImage);
 
@@ -32,11 +32,11 @@ int main(void)
 
 
 	
-	game.start(&spriteSheet, 8);
+	game.start(&spriteSheet, 16);
 
 	game.addEmpire();
 	Empire* empire = &game.empires[0];
-	Windmill house = Windmill(game.board);
+	House house = House(game.board);
 	DemoEntity entity = DemoEntity(empire);
 	entity.setPosition({ 7, 8 });
 

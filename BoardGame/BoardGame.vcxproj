@@ -28,6 +28,7 @@
     <ClCompile Include="source\Board\GameState.cpp" />
     <ClCompile Include="Source\Board\Board.cpp" />
     <ClCompile Include="Source\Main.cpp" />
+    <ClCompile Include="source\Board\Entities\Worker.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Board\Buildings\Windmill.h" />
@@ -43,6 +44,7 @@
     <ClInclude Include="Source\Board\Building.h" />
     <ClInclude Include="Source\stb\stb_perlin.h" />
     <ClInclude Include="source\Board\Buildings\Watchtower.h" />
+    <ClInclude Include="source\Board\Entities\Worker.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="package\openal32.dll" />

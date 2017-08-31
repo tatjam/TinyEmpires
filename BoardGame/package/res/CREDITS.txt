@@ -1,1 +1,5 @@
 sprites8x8.png -> Credit to Soundlust for original graphics
+sprites16x16.png -> Credit to Sharm for some of the graphics
+					Credit to Mari Coppola for entity graphics
+
+Art obtained from opengameart.org

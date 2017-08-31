@@ -72,22 +72,113 @@ void Board::drawResource(Tile* t, size_t x, size_t y, sf::RenderTarget* target)
 	}
 }
 
+void Board::drawOverload(Tile we, Tile them, size_t loc, int x, int y, sf::RenderTarget* target)
+{
+	if (we.floor == them.floor || 
+		x < 0 || y < 0 || x > width || y > height ||
+		we.wall != NO_WALL || them.wall != NO_WALL)
+	{
+		return;
+	}
+
+	// Dirt overloads nothing
+	if (we.floor == DIRT)
+	{
+		return;
+	}
+	// Grass overloads dirt
+	else if (we.floor == GRASS)
+	{
+		if (them.floor != DIRT)
+		{
+			return;
+		}
+	}
+	// Sand overloads grass and dirt
+	else if (we.floor == SAND)
+	{
+		if (them.floor != GRASS && them.floor != DIRT)
+		{
+			return;
+		}
+	}
+	// Rock overloads everything
+	else if(we.floor == ROCK)
+	{
+		// don't return; (:P)
+	}
+	else
+	{
+		return;
+	}
+
+	// Draw the thing
+
+	sf::Sprite spr;
+	spr.setTexture(*spriteSheet);
+
+	if (we.floor == DIRT)
+	{
+		// Not possible uh :P
+		spr.setTextureRect(sf::IntRect(0, spriteSide * 14, spriteSide, spriteSide));
+	}
+	else if (we.floor == GRASS)
+	{
+		spr.setTextureRect(sf::IntRect(0, spriteSide * 12, spriteSide, spriteSide));
+	}
+	else if (we.floor == SAND)
+	{
+		spr.setTextureRect(sf::IntRect(0, spriteSide * 14, spriteSide, spriteSide));
+	}
+	else
+	{
+		spr.setTextureRect(sf::IntRect(0, spriteSide * 15, spriteSide, spriteSide));
+	}
+
+	if (loc == 0)
+	{
+		spr.setTextureRect(sf::IntRect(12 * spriteSide, spr.getTextureRect().top, spriteSide, spriteSide));
+	}
+	else if (loc == 1)
+	{
+		spr.setTextureRect(sf::IntRect(13 * spriteSide, spr.getTextureRect().top, spriteSide, spriteSide));
+	}
+	else if (loc == 2)
+	{
+		spr.setTextureRect(sf::IntRect(14 * spriteSide, spr.getTextureRect().top, spriteSide, spriteSide));
+	}
+	else
+	{
+		spr.setTextureRect(sf::IntRect(15 * spriteSide, spr.getTextureRect().top, spriteSide, spriteSide));
+	}
+
+	spr.setPosition(x * spriteSide, y * spriteSide);
+
+	target->draw(spr);
+
+}
+
 void Board::renderChunk(size_t i, sf::RenderTarget* target)
 {
+	// Grass goes over dirt 
+	// Sand goes over grass and dirt
+	// Rock goes over everything
+	// Dirt goes over nothing
+
 	sf::Sprite spr;
 	spr.setTexture(*spriteSheet, true);
+
 	for (size_t x = 0; x < CHUNK_WIDTH; x++)
 	{
 		for (size_t y = 0; y < CHUNK_HEIGHT; y++)
 		{
-
-			spr.setPosition((float)(x * spriteSide), (float)(y * spriteSide));
-
 			size_t chunkx = i % cwidth;
 			size_t chunky = i / cwidth;
 
 			size_t rx = x + (chunkx * CHUNK_WIDTH);
 			size_t ry = y + (chunky * CHUNK_HEIGHT);
+
+			spr.setPosition((float)(x * spriteSide), (float)(y * spriteSide));
 
 			size_t j = y * CHUNK_WIDTH + x;
 			Tile t = chunks[i][j];
@@ -119,7 +210,59 @@ void Board::renderChunk(size_t i, sf::RenderTarget* target)
 				target->draw(spr);
 			}
 
-			// Resource
+			
+		}
+	}
+
+	for (size_t x = 0; x < CHUNK_WIDTH; x++)
+	{
+		for (size_t y = 0; y < CHUNK_HEIGHT; y++)
+		{
+			size_t chunkx = i % cwidth;
+			size_t chunky = i / cwidth;
+
+			size_t rx = x + (chunkx * CHUNK_WIDTH);
+			size_t ry = y + (chunky * CHUNK_HEIGHT);
+
+			// Draw tile overloads
+			for (int ox = -1; ox <= 1; ox++)
+			{
+				for (int oy = -1; oy <= 1; oy++)
+				{
+					if (ox == -1 && oy == 0)
+					{
+						// Left
+						drawOverload(getTile(rx, ry), getTile(rx + ox, ry + oy), 1, (int)x + (int)ox, (int)y + (int)oy, target);
+					}
+					else if (ox == 1 && oy == 0)
+					{
+						// Right
+						drawOverload(getTile(rx, ry), getTile(rx + ox, ry + oy), 3, (int)x + (int)ox, (int)y + (int)oy, target);
+					}
+					else if (ox == 0 && oy == 1)
+					{
+						// Down
+						drawOverload(getTile(rx, ry), getTile(rx + ox, ry + oy), 0, (int)x + (int)ox, (int)y + (int)oy, target);
+					}
+					else if (ox == 0 && oy == -1)
+					{
+						// Top
+						drawOverload(getTile(rx, ry), getTile(rx + ox, ry + oy), 2, (int)x + (int)ox, (int)y + (int)oy, target);
+					}
+
+				}
+			}
+		}
+	}
+
+	// Draw resources afterwards
+	for (size_t x = 0; x < CHUNK_WIDTH; x++)
+	{
+		for (size_t y = 0; y < CHUNK_HEIGHT; y++)
+
+		{
+			size_t j = y * CHUNK_WIDTH + x;
+			Tile t = chunks[i][j];
 
 			drawResource(&t, x, y, target);
 		}

@@ -86,6 +86,22 @@ void Entity::damage(int damage)
 	}
 }
 
+void Entity::giveOrder(OrderType order, sf::Vector2i target)
+{
+	activeOrder.type = order;
+	activeOrder.target = target;
+}
+
+Order Entity::getActiveOrder()
+{
+	return activeOrder;
+}
+
+bool Entity::hasOrder()
+{
+	return activeOrder.type != NO_ORDER;
+}
+
 void Entity::updateMovement(float dt)
 {
 	if (inMovement)

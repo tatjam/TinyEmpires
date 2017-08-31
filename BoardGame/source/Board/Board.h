@@ -214,6 +214,7 @@ private:
 	void placeResources(GenSettings settings);
 
 	void drawResource(Tile* t, size_t x, size_t y, sf::RenderTarget* target);
+	void drawOverload(Tile we, Tile them, size_t loc, int x, int y, sf::RenderTarget* target);
 
 	Tile nullTile = Tile(DEBUG_TILE, NO_WALL);
 

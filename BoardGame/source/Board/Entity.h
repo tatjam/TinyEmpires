@@ -8,9 +8,17 @@ struct PathCosts;
 
 enum OrderType
 {
+	NO_ORDER,
 	MOVE,
 	ATTACK,
-	BUILD
+	BUILD,
+	MINE
+};
+
+struct Order
+{
+	OrderType type = NO_ORDER;
+	sf::Vector2i target;
 };
 
 class Entity
@@ -60,6 +68,8 @@ private:
 
 	std::thread* worker;
 
+	Order activeOrder = Order();
+
 public:
 
 	virtual sf::Vector2i getPosition();
@@ -77,19 +87,22 @@ public:
 
 	virtual void draw(sf::RenderTarget* target, sf::Texture* spriteSheet, size_t tileSide);
 
-	virtual void pretick(float dt) = 0;
-	virtual void tick(float dt) = 0;
+	virtual void pretick(float dt){}
+	virtual void tick(float dt) {}
 
 	// Called when the entity is spawned
-	virtual void start() = 0;
+	virtual void start() {}
 
 	// Called when the entity is killed
-	virtual void end() = 0;
+	virtual void end() {}
 
 	// damage can be used to heal too!
 	virtual void damage(int damage);
 
-	virtual void giveOrder(OrderType order, sf::Vector2i target) {}
+	virtual void giveOrder(OrderType order, sf::Vector2i target);
+
+	Order getActiveOrder();
+	bool hasOrder();
 
 	// Called automatically, handles internal movement
 	void updateMovement(float dt);

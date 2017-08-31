@@ -21,7 +21,7 @@ public:
 	{
 		setViewRadius(4);
 		setTexRect(sf::IntRect(0, 3, 2, 2));
-		setBuildingTexRect(sf::IntRect(5, 3, 2, 2));
+		setBuildingTexRect(sf::IntRect(2, 3, 2, 2));
 		setMaxHealth(100.0f);
 	}
 	~House() {}
