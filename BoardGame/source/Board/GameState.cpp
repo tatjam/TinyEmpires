@@ -43,7 +43,7 @@ void GameState::cameraUpdate(float dt, sf::RenderWindow* win)
 
 	sf::Vector2i mPos = sf::Mouse::getPosition(*win);
 	bool inWindow = false;
-	if (mPos.x > 0 && mPos.x < win->getSize().x && mPos.y > 0 && mPos.y < win->getSize().y)
+	if (mPos.x > 0 && mPos.x < (int)win->getSize().x && mPos.y > 0 && mPos.y < (int)win->getSize().y)
 	{
 		inWindow = true;
 	}
@@ -152,7 +152,7 @@ void GameState::rerender()
 void GameState::draw(sf::RenderTarget* target)
 {
 	sf::View view;
-	view.reset(sf::FloatRect(0, 0, target->getSize().x, target->getSize().y));
+	view.reset(sf::FloatRect(0, 0, (float)target->getSize().x, (float)target->getSize().y));
 	view.setCenter(player.cameraPos);
 	view.zoom(player.cameraZoom);
 
@@ -188,7 +188,7 @@ void GameState::drawUI(sf::RenderTarget* target)
 	box.setOutlineThickness(-5.0f);
 
 	// 15% used by bottom box
-	box.setSize(sf::Vector2f(target->getSize().x, target->getSize().y * 0.15f));
+	box.setSize(sf::Vector2f((float)target->getSize().x, (float)target->getSize().y * 0.15f));
 	box.setPosition(0.0f, target->getSize().y - box.getSize().y);
 	
 	target->draw(box);
@@ -203,8 +203,8 @@ void GameState::drawUI(sf::RenderTarget* target)
 	sf::Sprite minimapSr;
 	minimapSr.setTexture(minimapT);
 	
-	float minimapX = board->width;
-	float minimapY = board->height;
+	float minimapX = (float)board->width;
+	float minimapY = (float)board->height;
 
 	// We want minimap to be the same pixels as minimap box
 	float wantedX = target->getSize().y * 0.15f * 1.5f - 5.0f;

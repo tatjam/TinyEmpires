@@ -5,17 +5,15 @@ class Worker : public Entity
 {
 public:
 
-	virtual void pretick(float dt);
+	virtual void pretick(float dt) {}
 
-	virtual void tick(float dt);
+	virtual void tick(float dt) {}
 
 	// Called when the entity is spawned
-	virtual void start();
+	virtual void start() {}
 
 	// Called when the entity is killed
-	virtual void end();
-
-	virtual void draw(sf::RenderTarget* target, sf::Texture* spriteSheet, size_t tileSide);
+	virtual void end() {}
 
 	Worker(Empire* owner) : Entity(owner)
 	{
@@ -26,5 +24,5 @@ public:
 		generatePathCosts();
 	}
 
-	~DemoEntity();
+	~Worker();
 };

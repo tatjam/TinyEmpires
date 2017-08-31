@@ -45,6 +45,9 @@
     <ClCompile Include="source\Board\Entities\Worker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="LICENSE">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Board\Board.h">
