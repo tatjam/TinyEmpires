@@ -245,7 +245,7 @@ public:
 	Path findPath(sf::Vector2u a, sf::Vector2u b, PathCosts costs = PathCosts(), size_t maxIterations = PATH_MAX_IT);
 
 	// Uses real distance
-	float pathDistance(sf::Vector2u a, sf::Vector2u b, PathCosts costs);
+	float pathDistance(sf::Vector2u a, sf::Vector2u b, PathCosts costs, bool ignoreEntity = false);
 
 	// Uses heuristic distance
 	float pathDistanceHeuristic(sf::Vector2u a, sf::Vector2u b);

@@ -26,6 +26,7 @@ struct AIPlayer
 
 class Entity;
 class Building;
+struct Order;
 
 class GameState
 {
@@ -39,6 +40,20 @@ private:
 
 	std::vector<Entity*> selected;
 	std::vector<Building*> selectedBuildings;
+
+	bool entitiesOnly = false;
+
+	float animProgress = 0.0f;
+
+	bool inAnim = false;
+
+	sf::Vector2i animTarget;
+
+	bool held = false;
+
+	std::vector<std::pair<Entity*, Order>> ordersBeingGiven;
+
+	float otimer = 0.0f;
 
 public:
 

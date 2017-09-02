@@ -35,6 +35,7 @@ private:
 	sf::Vector2f offset;
 
 	sf::Vector2u texPos;
+	sf::Vector2u colorTexPos;
 
 	size_t viewRadius;
 
@@ -73,15 +74,20 @@ private:
 	bool selected = false;
 	Empire* selector;
 
+	float timeWaited = 0.0f;
+
 public:
 
 	virtual sf::Vector2i getPosition();
-	virtual void setPosition(sf::Vector2i nPos);
+	virtual bool setPosition(sf::Vector2i nPos, bool set = true);
 
 	virtual void setTexPos(sf::Vector2u pos);
 	virtual sf::Vector2u getTexPos();
 
-	virtual sf::IntRect getTextureRect(size_t tileSide);
+	virtual void setColorTexPos(sf::Vector2u pos);
+	virtual sf::Vector2u getColorTexPos();
+
+	virtual sf::IntRect getTextureRect(size_t tileSide, bool color = false);
 
 	virtual size_t getViewRadius();
 	virtual void setViewRadius(size_t r);
@@ -113,6 +119,8 @@ public:
 	virtual void damage(int damage);
 
 	virtual void giveOrder(OrderType order, sf::Vector2i target);
+
+	virtual void finishOrder();
 
 	Order getActiveOrder();
 	bool hasOrder();

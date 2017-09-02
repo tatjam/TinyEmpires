@@ -524,12 +524,15 @@ Path Board::findPath(sf::Vector2u start, sf::Vector2u end, PathCosts costs, size
 
 	if (start.x < width && start.y < height && end.x < width && end.y < height)
 	{
+
+		bool first_it = true;
+
 		// First check for reachability of goal to stop very long searches
 		// Fast check, check that neighbor tiles to start and end are walkable
 		std::vector<sf::Vector2u> startNeighbors = getNeighbors(start);
 		std::vector<sf::Vector2u> endNeighbors = getNeighbors(end);
 		
-		if (pathDistance(start, start, costs) == INFINITY || pathDistance(end, end, costs) == INFINITY)
+		if (pathDistance(start, start, costs, true) == INFINITY || pathDistance(end, end, costs, false) == INFINITY)
 		{
 			return out;
 		}
@@ -542,6 +545,7 @@ Path Board::findPath(sf::Vector2u start, sf::Vector2u end, PathCosts costs, size
 			if (dist != INFINITY)
 			{
 				any = true;
+				break;
 			}
 		}
 
@@ -587,6 +591,9 @@ Path Board::findPath(sf::Vector2u start, sf::Vector2u end, PathCosts costs, size
 
 
 		size_t iterations = 0;
+
+
+		first_it = false;
 
 		// While frontier is not empty
 		while (frontier.size() > 0)
@@ -672,7 +679,7 @@ Path Board::findPath(sf::Vector2u start, sf::Vector2u end, PathCosts costs, size
 
 				// Distance from start to neighbor
 				float nG = gScore[findIndex(current)];
-				float pD = pathDistance(current, neighbor, costs);
+				float pD = pathDistance(current, neighbor, costs, first_it);
 
 				float tentativeGScore = nG + pD;
 				if (tentativeGScore > gScore[findIndex(neighbor)])
@@ -687,6 +694,7 @@ Path Board::findPath(sf::Vector2u start, sf::Vector2u end, PathCosts costs, size
 				fScore[findIndex(neighbor)] = tentativeGScore + pathDistanceHeuristic(neighbor, end);
 			}
 
+			first_it = false;
 		}
 	}
 
@@ -993,7 +1001,7 @@ void Board::placeResources(GenSettings settings)
 
 
 
-float Board::pathDistance(sf::Vector2u a, sf::Vector2u b, PathCosts costs)
+float Board::pathDistance(sf::Vector2u a, sf::Vector2u b, PathCosts costs, bool ignoreEntity)
 {
 	// Find distance
 	if (a.x > width || a.y > height || b.x > width || b.y > height)
@@ -1011,7 +1019,12 @@ float Board::pathDistance(sf::Vector2u a, sf::Vector2u b, PathCosts costs)
 
 		// Add costs
 		Tile target = getTile(b.x, b.y);
-		if (target.wall != NO_WALL || target.onTop != NULL)
+
+		if (target.entityOnTop != NULL && !ignoreEntity)
+		{
+			dist = INFINITY;
+		}
+		else if (target.wall != NO_WALL || target.onTop != NULL)
 		{
 			if (costs.wall < 0){dist = INFINITY;}
 			else{dist *= costs.wall;}

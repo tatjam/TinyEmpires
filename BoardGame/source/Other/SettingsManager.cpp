@@ -32,6 +32,8 @@ void SettingsManager::load(std::string path)
 		cSets.downKeys = loadKeys(&config["controls"]["down_keys"]);
 		cSets.leftKeys = loadKeys(&config["controls"]["left_keys"]);
 
+		gSets.threadedPathfinding = config["game"]["threaded_pathfinding"].as<bool>();
+
 	}
 	catch (YAML::Exception e)
 	{

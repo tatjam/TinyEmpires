@@ -24,6 +24,8 @@ private:
 
 public:
 
+	sf::Color color = sf::Color::White;
+
 	GameState* game;
 
 	// Not using std::vector<bool> because of its speed

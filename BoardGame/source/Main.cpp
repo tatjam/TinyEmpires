@@ -37,12 +37,26 @@ int main(void)
 	game.addEmpire();
 	Empire* empire = &game.empires[0];
 	House house = House(game.board);
-	DemoEntity entity = DemoEntity(empire);
+	Worker entity = Worker(empire);
 	entity.setPosition({ 7, 8 });
+
+	Worker entity2 = Worker(empire);
+	entity2.setPosition({ 7, 9 });
+
+	Worker entity3 = Worker(empire);
+	entity3.setPosition({ 8, 9 });
+
+	Worker entity4 = Worker(empire);
+	entity4.setPosition({ 6, 9 });
 
 	house.setPosition({ 4, 4 });
 	empire->buildings.push_back(&house);
 	empire->entities.push_back(&entity);
+	empire->entities.push_back(&entity2);
+	empire->entities.push_back(&entity3);
+	empire->entities.push_back(&entity4);
+
+	empire->color = sf::Color::Cyan;
 
 	house.start();
 
@@ -60,6 +74,8 @@ int main(void)
 	view.reset(sf::FloatRect(0, 0, 512.0f, 512.0f));
 
 	empire->launchViewThread();
+
+
 
 	while (win->isOpen())
 	{

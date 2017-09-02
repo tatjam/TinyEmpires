@@ -34,6 +34,11 @@ struct ControlSettings
 	std::vector<Key> decZoomKeys = { ST_KEY::F };
 };
 
+struct GameSettings
+{
+	bool threadedPathfinding = true;
+};
+
 class SettingsManager
 {
 public:
@@ -41,6 +46,7 @@ public:
 	// Settings
 	WindowSettings wSets;
 	ControlSettings cSets;
+	GameSettings gSets;
 
 
 	void load(std::string path);

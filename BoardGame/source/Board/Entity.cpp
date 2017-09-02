@@ -7,18 +7,31 @@ sf::Vector2i Entity::getPosition()
 	return position;
 }
 
-void Entity::setPosition(sf::Vector2i nPos)
+bool Entity::setPosition(sf::Vector2i nPos, bool set)
 {
 	Tile actual = owner->game->board->getTile(getPosition().x, getPosition().y);
 	Tile newPos = owner->game->board->getTile(nPos.x, nPos.y);
 
+	if (newPos.entityOnTop != NULL && newPos.entityOnTop != this)
+	{
+		return false;
+	}
+
 	actual.entityOnTop = NULL;
 	newPos.entityOnTop = this;
 
-	owner->game->board->setTile(getPosition().x, getPosition().y, actual);
-	owner->game->board->setTile(nPos.x, nPos.y, newPos);
 
-	position = nPos;
+
+	if (set)
+	{
+		owner->game->board->setTile(getPosition().x, getPosition().y, actual);
+		owner->game->board->setTile(nPos.x, nPos.y, newPos);
+
+
+		position = nPos;
+	}
+
+	return true;
 }
 
 void Entity::setTexPos(sf::Vector2u pos)
@@ -31,9 +44,26 @@ sf::Vector2u Entity::getTexPos()
 	return texPos;
 }
 
-sf::IntRect Entity::getTextureRect(size_t tileSide)
+void Entity::setColorTexPos(sf::Vector2u pos)
 {
-	return sf::IntRect(texPos.x * tileSide, texPos.y * tileSide, tileSide, tileSide);
+	colorTexPos = pos;
+}
+
+sf::Vector2u Entity::getColorTexPos()
+{
+	return colorTexPos;
+}
+
+sf::IntRect Entity::getTextureRect(size_t tileSide, bool color)
+{
+	if (color)
+	{
+		return sf::IntRect(colorTexPos.x * tileSide, colorTexPos.y * tileSide, tileSide, tileSide);
+	}
+	else
+	{
+		return sf::IntRect(texPos.x * tileSide, texPos.y * tileSide, tileSide, tileSide);
+	}
 }
 
 size_t Entity::getViewRadius()
@@ -70,10 +100,18 @@ void Entity::draw(sf::RenderTarget* target, sf::Texture* spriteSheet, size_t til
 {
 	sprite.setTexture(*spriteSheet);
 	sprite.setTextureRect(getTextureRect(tileSide));
+
 	sprite.setPosition((float)getPosition().x * (float)tileSide + offset.x * (float)tileSide,
 		(float)getPosition().y * (float)tileSide + offset.y * (float)tileSide);
 
 	target->draw(sprite);
+
+	sprite.setTextureRect(getTextureRect(tileSide, true));
+	sprite.setColor(owner->color);
+
+	target->draw(sprite);
+
+	sprite.setColor(sf::Color::White);
 
 	if (selected)
 	{
@@ -122,6 +160,11 @@ void Entity::giveOrder(OrderType order, sf::Vector2i target)
 	activeOrder.target = target;
 }
 
+void Entity::finishOrder()
+{
+	activeOrder.type = NO_ORDER;
+}
+
 Order Entity::getActiveOrder()
 {
 	return activeOrder;
@@ -136,19 +179,38 @@ void Entity::updateMovement(float dt)
 {
 	if (inMovement)
 	{
-		movProgress += rspeed * dt;
+
+		if (setPosition(movTarget, false) == false)
+		{
+			// Oh, we are fucked, we are moving into 
+			// an unit! SOMEWHAT >:(
+			interpTo({ 0, 0 }, movProgress);
+			movProgress -= rspeed * dt;
+
+			return;
+		}
 
 		sf::Vector2i target = getPosition() - movTarget;
+		movProgress += rspeed * dt;
 
 		interpTo(target, movProgress);
 
+
+
 		if (movProgress >= 1.0f)
 		{
-			// Reset
-			inMovement = false;
-			movProgress = 0.0f;
-			setPosition(movTarget);
-			interpTo({ 0, 0 }, 0.0f);
+
+			if (setPosition(movTarget) == false)
+			{
+				// lol wut?
+			}
+			else
+			{
+				// Reset
+				inMovement = false;
+				movProgress = 0.0f;
+				interpTo({ 0, 0 }, 0.0f);
+			}
 		}
 	}
 }
@@ -174,16 +236,52 @@ void Entity::updatePathing(float dt)
 		{
 			if (getMovementStatus())
 			{
-				if (activePath.size() > 0)
+				if (activePath.size() > 0 && pathptr < activePath.size() )
 				{
 					sf::Vector2u next = activePath[pathptr];
 
-					if (setMovementTarget((sf::Vector2i)next) == 0.0f)
-					{
-						// Find new path:
-						activePath = getOwner()->game->board->findPath((sf::Vector2u)getPosition(), wantedTarget, getPathCosts());
-						pathptr = 0;
+					if(owner->game->board->getTile(next.x, next.y).entityOnTop != NULL 
+						&& owner->game->board->getTile(next.x, next.y).entityOnTop != this)
+					{ 
+						// Catch moving into units exception :P
 						return;
+					}
+					else if (setMovementTarget((sf::Vector2i)next) == 0.0f)
+					{
+						if (next == wantedTarget)
+						{
+							// We did enough
+							inPath = false;
+							pathptr = 0;
+							setMovementTarget(getPosition());
+							return;
+						}
+						else if (owner->game->board->getTile(next.x, next.y).entityOnTop != NULL)
+						{
+							// Wait until timeout
+							timeWaited += dt;
+
+							if (timeWaited >= 0.7f)
+							{
+								timeWaited = 0.0f;
+								activePath = getOwner()->game->board->findPath((sf::Vector2u)getPosition(), wantedTarget, getPathCosts());
+								pathptr = 0;
+								return;
+							}
+							else
+							{
+								setMovementTarget(getPosition());
+								return;
+							}
+							
+						}
+						else
+						{
+							// Find new path:
+							activePath = getOwner()->game->board->findPath((sf::Vector2u)getPosition(), wantedTarget, getPathCosts());
+							pathptr = 0;
+							return;
+						}
 					}
 
 					pathptr++;
@@ -210,7 +308,7 @@ float Entity::setMovementTarget(sf::Vector2i tile)
 	{
 		Tile targetTile = owner->game->board->getTile(tile.x, tile.y);
 
-		if ((targetTile.wall != NONE || targetTile.onTop != NULL) && !flyer)
+		if ((targetTile.wall != NONE || targetTile.onTop != NULL) && !flyer || targetTile.entityOnTop != NULL)
 		{
 			rspeed = 0.0f;
 		}
@@ -329,6 +427,11 @@ void Entity::setSpeed(float speed)
 
 sf::Vector2f Entity::interpTo(sf::Vector2i target, float t)
 {
+	if (t < 0.0f)
+	{
+		return sf::Vector2f(0, 0);
+	}
+
 	float x = 0;
 	float y = 0;
 

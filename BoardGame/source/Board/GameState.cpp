@@ -132,6 +132,22 @@ void GameState::renderMinimap()
 
 void GameState::userUpdate(float dt, sf::RenderWindow* win)
 {
+	otimer += dt;
+
+	// Dispatch orders
+	if (otimer >= 0.25f)
+	{
+		if (ordersBeingGiven.size() > 0)
+		{
+			std::pair<Entity*, Order> order = ordersBeingGiven[ordersBeingGiven.size() - 1];
+			ordersBeingGiven.pop_back();
+
+			order.first->giveOrder(order.second.type, order.second.target);
+			otimer = 0.0f;
+		}
+
+
+	}
 
 	cameraUpdate(dt, win);
 
@@ -151,6 +167,8 @@ void GameState::userUpdate(float dt, sf::RenderWindow* win)
 		{
 			if (!getAnyKeyDown(&sets->cSets.multiSelectKeys))
 			{
+
+				entitiesOnly = false;
 
 				// Remove previous selections
 				for (size_t i = 0; i < selected.size(); i++)
@@ -208,6 +226,10 @@ void GameState::userUpdate(float dt, sf::RenderWindow* win)
 				highestY = lowestY + 1;
 			}
 
+
+			// Selection will prioritize entities
+
+
 			for (size_t x = (size_t)lowestX; x < (size_t)highestX; x++)
 			{
 				for (size_t y = (size_t)lowestY; y < (size_t)highestY; y++)
@@ -219,9 +241,18 @@ void GameState::userUpdate(float dt, sf::RenderWindow* win)
 						t.entityOnTop->select(&empires[0]);
 
 						selected.push_back(t.entityOnTop);
+
+						// Clear buildings
+						for (size_t i = 0; i < selectedBuildings.size(); i++)
+						{
+							selectedBuildings[i]->unselect(&empires[0]);
+						}
+						selectedBuildings.clear();
+
+						entitiesOnly = true;
 					}
 
-					if (t.onTop != NULL)
+					if (t.onTop != NULL && !entitiesOnly)
 					{
 						t.onTop->select(&empires[0]);
 						/*if (!(std::find(selectedBuildings.begin(), selectedBuildings.end(), x) != selectedBuildings.end()))
@@ -239,6 +270,49 @@ void GameState::userUpdate(float dt, sf::RenderWindow* win)
 		}
 	}
 
+	if (inAnim)
+	{
+		animProgress += 3 * dt;
+		if (animProgress >= 1.0f)
+		{
+			inAnim = false;
+			animProgress = 0.0f;
+		}
+	}
+
+	if (sf::Mouse::isButtonPressed(sf::Mouse::Right))
+	{
+		if (!held)
+		{
+			if (!selected.empty())
+			{
+				sf::Vector2i nAnimTarget = sf::Mouse::getPosition(*win);
+				sf::Vector2f nAnimTargetf = win->mapPixelToCoords(nAnimTarget);
+				nAnimTarget = { (int)(nAnimTargetf.x / board->spriteSide), (int)(nAnimTargetf.y / board->spriteSide) };
+
+				for (size_t i = 0; i < selected.size(); i++)
+				{
+					Order order; order.type = MOVE; order.target = nAnimTarget;
+					ordersBeingGiven.push_back(std::pair<Entity*, Order>(selected[i], order));
+					//selected[i]->giveOrder(MOVE, nAnimTarget);
+				}
+
+				if (nAnimTarget != animTarget)
+				{
+					inAnim = true;
+					animProgress = 0.0f;
+
+					animTarget = nAnimTarget;
+				}
+			}
+
+			held = true;
+		}
+	}
+	else 
+	{
+		held = false;
+	}
 
 }
 
@@ -272,6 +346,38 @@ void GameState::draw(sf::RenderTarget* target)
 	{
 		empires[i].draw(target, board->spriteSheet, board->spriteSide);
 		empires[i].drawView(target);
+	}
+
+	if (inAnim)
+	{
+		float dist = 1.0f - (1.0f * (animProgress * 0.7f));
+		sf::Sprite arrow = sf::Sprite();
+		arrow.setTexture(*board->spriteSheet);
+		
+		// Top left arrow
+		arrow.setTextureRect(sf::IntRect(14 * board->spriteSide, 8 * board->spriteSide, board->spriteSide, board->spriteSide));
+		sf::Vector2f pos = { (animTarget.x - dist) * board->spriteSide, (animTarget.y - dist) * board->spriteSide };
+		arrow.setPosition(pos);
+		target->draw(arrow);
+
+		// Top right
+		arrow.setTextureRect(sf::IntRect(13 * board->spriteSide, 8 * board->spriteSide, board->spriteSide, board->spriteSide));
+		pos = { (animTarget.x + dist) * board->spriteSide, (animTarget.y - dist) * board->spriteSide };
+		arrow.setPosition(pos);
+		target->draw(arrow);
+
+		// Bot left
+		arrow.setTextureRect(sf::IntRect(12 * board->spriteSide, 8 * board->spriteSide, board->spriteSide, board->spriteSide));
+		pos = { (animTarget.x - dist) * board->spriteSide, (animTarget.y + dist) * board->spriteSide };
+		arrow.setPosition(pos);
+		target->draw(arrow);
+
+		// Bot right
+		arrow.setTextureRect(sf::IntRect(15 * board->spriteSide, 8 * board->spriteSide, board->spriteSide, board->spriteSide));
+		pos = { (animTarget.x + dist) * board->spriteSide, (animTarget.y + dist) * board->spriteSide };
+		arrow.setPosition(pos);
+		target->draw(arrow);
+
 	}
 
 }
@@ -364,8 +470,19 @@ void GameState::drawUI(sf::RenderTarget* target)
 	
 	target->draw(viewRect);
 
+	// Draw cursor
+	/*
+	sf::Sprite sprite = sf::Sprite();
+	sprite.setTexture(*board->spriteSheet);
+	sprite.setTextureRect(sf::IntRect(31 * board->spriteSide, 31 * board->spriteSide, board->spriteSide, board->spriteSide));
+
+	sprite.setPosition((sf::Vector2f)sf::Mouse::getPosition(*(sf::RenderWindow*)target));
+	target->draw(sprite);
+	*/
+
 	// Restore game view
 	target->setView(active);
+
 
 }
 

@@ -16,11 +16,34 @@ window:
   width: 768
   height: 512
 
+game:
+
+  # If set to true no software mouse will be rendered
+  # Will be deprecated if I manage to change the
+  # OS cursor!
+  # Useful if your mouse lags
+  use_hardware_mouse: false
+
+  # May improve framerate when moving units
+  # but will add a slight order delay when
+  # doing big paths or similar
+  threaded_pathfinding: true
+
+  # Delay when giving orders to multiple
+  # units. May reduce group jitter
+  group_order_delay: 0.5
+
 # Settings related to the controls
 controls:
 
   select_multiple_keys:
-    - 38   #LShift
+     - 38   #LShift
+	
+
+  # Used for when a mine order is ambiguous
+  # with a walk/attack order
+  force_order_mine_keys:
+     - 12   # M
 
   zoom_speed:
     slow: 0.4
