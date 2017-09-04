@@ -86,7 +86,7 @@ void Entity::fillView()
 			if (std::roundf(dist) < viewRadius)
 			{
 				int i = oy * owner->game->board->width + ox;
-				if (i >= 0 && i < owner->game->board->width * owner->game->board->height 
+				if (i >= 0 && i < owner->game->board->width * owner->game->board->height
 					&& ox < owner->game->board->width && oy < owner->game->board->height)
 				{
 					owner->view[i] = 2;
@@ -154,10 +154,11 @@ void Entity::damage(int damage)
 	}
 }
 
-void Entity::giveOrder(OrderType order, sf::Vector2i target)
+void Entity::giveOrder(OrderType order, sf::Vector2i target, sf::Vector2i moveTarget)
 {
 	activeOrder.type = order;
 	activeOrder.target = target;
+	activeOrder.moveTarget = moveTarget;
 }
 
 void Entity::finishOrder()
@@ -177,6 +178,32 @@ bool Entity::hasOrder()
 
 void Entity::updateMovement(float dt)
 {
+	if (inPath && prevPos == getPosition())
+	{
+		timeInStaticPath += dt;
+
+		if (timeInStaticPath > 3.0f)
+		{
+			moveTo((sf::Vector2i)wantedTarget);
+			std::cout << "Unstuck" << std::endl;
+			timeInStaticPath = 0.0f;
+		}
+	}
+	else
+	{
+		timeInStaticPath = 0.0f;
+	}
+
+
+	if (inPath && getPath()->at(getPath()->size() - 1) == (sf::Vector2u)getPosition())
+	{
+		activePath.clear();
+		inPath = false;
+		pathptr = 0;
+		//moveTo((sf::Vector2i)wantedTarget);
+		std::cout << "Unstuck" << std::endl;
+	}
+
 	if (inMovement)
 	{
 
@@ -213,6 +240,8 @@ void Entity::updateMovement(float dt)
 			}
 		}
 	}
+
+	prevPos = getPosition();
 }
 
 void Entity::updatePathing(float dt)
@@ -236,49 +265,57 @@ void Entity::updatePathing(float dt)
 		{
 			if (getMovementStatus())
 			{
-				if (activePath.size() > 0 && pathptr < activePath.size() )
+				if (activePath.size() > 0 && pathptr < activePath.size())
 				{
 					sf::Vector2u next = activePath[pathptr];
 
-					if(owner->game->board->getTile(next.x, next.y).entityOnTop != NULL 
-						&& owner->game->board->getTile(next.x, next.y).entityOnTop != this)
-					{ 
-						// Catch moving into units exception :P
-						return;
+					Tile nextT = owner->game->board->getTile(next.x, next.y);
+
+					if (nextT.entityOnTop != NULL && nextT.entityOnTop != this)
+					{
+						// Wait until timeout
+						timeWaited += dt;
+
+						if (timeWaited >= 0.25f)
+						{
+							timeWaited = 0.0f;
+							activePath = getOwner()->game->board->findPath((sf::Vector2u)getPosition(), wantedTarget, getPathCosts(), 10000, this);
+							if (activePath.empty())
+							{
+								inPath = false;
+								pathptr = 0;
+								setMovementTarget(getPosition());
+								return;
+							}
+							pathptr = 0;
+							return;
+						}
+						else
+						{
+							setMovementTarget(getPosition());
+							return;
+						}
 					}
 					else if (setMovementTarget((sf::Vector2i)next) == 0.0f)
 					{
 						if (next == wantedTarget)
 						{
 							// We did enough
+							setMovementTarget(getPosition());
 							inPath = false;
 							pathptr = 0;
-							setMovementTarget(getPosition());
 							return;
-						}
-						else if (owner->game->board->getTile(next.x, next.y).entityOnTop != NULL)
-						{
-							// Wait until timeout
-							timeWaited += dt;
-
-							if (timeWaited >= 0.7f)
-							{
-								timeWaited = 0.0f;
-								activePath = getOwner()->game->board->findPath((sf::Vector2u)getPosition(), wantedTarget, getPathCosts());
-								pathptr = 0;
-								return;
-							}
-							else
-							{
-								setMovementTarget(getPosition());
-								return;
-							}
-							
 						}
 						else
 						{
 							// Find new path:
-							activePath = getOwner()->game->board->findPath((sf::Vector2u)getPosition(), wantedTarget, getPathCosts());
+							moveTo((sf::Vector2i)wantedTarget, owner->game->sets->gSets.threadedPathfinding);
+							//activePath = getOwner()->game->board->findPath((sf::Vector2u)getPosition(), wantedTarget, getPathCosts(), 10000, this);
+							if (activePath.size() <= 0)
+							{
+								inPath = false;
+								return;
+							}
 							pathptr = 0;
 							return;
 						}
@@ -312,7 +349,7 @@ float Entity::setMovementTarget(sf::Vector2i tile)
 		{
 			rspeed = 0.0f;
 		}
-		else if (targetTile.floor == GRASS || targetTile.floor == DIRT 
+		else if (targetTile.floor == GRASS || targetTile.floor == DIRT
 			|| targetTile.floor == SAND)
 		{
 			if (targetTile.wood != NONE)
@@ -332,7 +369,7 @@ float Entity::setMovementTarget(sf::Vector2i tile)
 		{
 			rspeed = speed * shallowMult;
 		}
-		else if(targetTile.floor == DEEP_WATER)
+		else if (targetTile.floor == DEEP_WATER)
 		{
 			rspeed = speed * deepMult;
 		}
@@ -370,17 +407,22 @@ bool Entity::getMovementStatus()
 
 void Entity::moveTo(sf::Vector2i target, bool threaded)
 {
+	wantedTarget = (sf::Vector2u)target;
+
 	if (threaded)
 	{
+		inPath = false;
+		pathptr = 0;
+
 		threadWorkerFinished = false;
 		threadWorking = true;
 
-		worker = new std::thread(computePath, getOwner(), 
-			&activePath, (sf::Vector2u)getPosition(), (sf::Vector2u)target, *generatedCosts, &threadWorkerFinished);
+		worker = new std::thread(computePath, getOwner(),
+			&activePath, (sf::Vector2u)getPosition(), (sf::Vector2u)target, *generatedCosts, &threadWorkerFinished, this);
 	}
-	else 
+	else
 	{
-		startPath(owner->game->board->findPath((sf::Vector2u)getPosition(), (sf::Vector2u)target, *generatedCosts));
+		startPath(owner->game->board->findPath((sf::Vector2u)getPosition(), (sf::Vector2u)target, *generatedCosts, 10000, this));
 	}
 }
 
@@ -407,7 +449,7 @@ void Entity::cancelPath()
 
 bool Entity::isOnPath()
 {
-	return inPath || threadWorking;
+	return inPath;
 }
 
 std::vector<sf::Vector2u>* Entity::getPath()
@@ -503,7 +545,7 @@ void Entity::generatePathCosts()
 	{
 		generatedCosts->wall = 100;
 	}
-	else 
+	else
 	{
 		generatedCosts->wall = -1;
 	}
@@ -532,7 +574,7 @@ void Entity::generatePathCosts()
 	else {
 		generatedCosts->tree = (1.0f / (float)treeMult) * 100;
 	}
-	
+
 }
 
 void Entity::setOwner(Empire* owner)
@@ -557,11 +599,11 @@ Entity::~Entity()
 {
 }
 
-void computePath(Empire* owner, std::vector<sf::Vector2u>* out, 
-	sf::Vector2u from, sf::Vector2u to, PathCosts costs, bool* finished)
+void computePath(Empire* owner, std::vector<sf::Vector2u>* out,
+	sf::Vector2u from, sf::Vector2u to, PathCosts costs, bool* finished, Entity* thisEntity)
 {
 	std::vector<sf::Vector2u> path;
-	path = owner->game->board->findPath(from, to, costs);
+	path = owner->game->board->findPath(from, to, costs, 10000, thisEntity);
 
 	*out = path;
 

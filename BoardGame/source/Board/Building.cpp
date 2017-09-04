@@ -37,6 +37,11 @@ void Building::setBuildingTexRect(sf::IntRect nRect)
 	buildingTexRect = nRect;
 }
 
+void Building::setColorTexRect(sf::IntRect nRect)
+{
+	colorTexRect = nRect;
+}
+
 sf::IntRect Building::getTexRect()
 {
 	return texRect;
@@ -65,6 +70,20 @@ sf::IntRect Building::getBuildingFinalRect(size_t tileSide)
 	return out;
 }
 
+sf::IntRect Building::getColorTexRect()
+{
+	return colorTexRect;
+}
+
+sf::IntRect Building::getColorFinalRect(size_t tileSide)
+{
+	sf::IntRect out = colorTexRect;
+
+	out.top *= tileSide; out.left *= tileSide; out.height *= tileSide; out.width *= tileSide;
+
+	return out;
+}
+
 size_t Building::getViewRadius()
 {
 	return viewRadius;
@@ -77,8 +96,16 @@ void Building::setViewRadius(size_t i)
 
 void Building::fillView(Empire* owner)
 {
-	if (isBuilt())
+	if (isBuilt() || buildProgress >= maxHealth * 0.2f)
 	{
+
+		int rRadius = viewRadius;
+
+		if (buildProgress < maxHealth)
+		{
+			rRadius = 1;
+		}
+
 		// Using getSize() crashes due to thread synchronization
 		// TODO: look into it
 
@@ -86,12 +113,12 @@ void Building::fillView(Empire* owner)
 		{
 			for (int y = 0; y < texRect.height; y++)
 			{
-				for (int ox = (getPosition().x + x) - (int)viewRadius; ox < (getPosition().x + x) + (int)viewRadius; ox++)
+				for (int ox = (getPosition().x + x) - rRadius; ox < (getPosition().x + x) + rRadius; ox++)
 				{
-					for (int oy = (getPosition().y + y) - (int)viewRadius; oy < (getPosition().y + y) + (int)viewRadius; oy++)
+					for (int oy = (getPosition().y + y) - rRadius; oy < (getPosition().y + y) + rRadius; oy++)
 					{
 						float dist = sqrtf(powf((float)(ox - (getPosition().x + x)), 2.0f) + powf((float)(oy - (getPosition().y + y)), 2.0f));
-						if (std::roundf(dist) < viewRadius)
+						if (std::roundf(dist) < rRadius)
 						{
 							int i = oy * attached->width + ox;
 							if (i >= 0 && ox < (int)owner->game->board->width && oy < (int)owner->game->board->height
@@ -194,6 +221,13 @@ void Building::draw(sf::RenderTarget* target, sf::Texture* spriteSheet, size_t t
 		sprite.setPosition((float)(getPosition().x * tileSide), (float)(getPosition().y * tileSide));
 
 		target->draw(sprite);
+
+		// Draw color overlay
+
+		sprite.setTextureRect(getColorFinalRect(tileSide));
+		sprite.setColor(owner->color);
+		target->draw(sprite);
+		sprite.setColor(sf::Color::White);
 	}
 
 	if (isSelected())
@@ -301,6 +335,29 @@ void Building::end()
 			attached->setTile(rx, ry, t);
 		}
 	}
+
+	getOwner()->removeBuilding(this);
+}
+
+void Building::die()
+{
+	// Fill ground with dirt tiles
+	for (int ox = getPosition().x; ox < getPosition().x + getSize().x; ox++)
+	{
+		for (int oy = getPosition().y; oy < getPosition().y + getSize().y; oy++)
+		{
+			if (ox >= 0 && oy >= 0 && ox < owner->game->board->width && oy < owner->game->board->height)
+			{
+				Tile t = owner->game->board->getTile(ox, oy);
+				t.floor = DIRT;
+				owner->game->board->setTile(ox, oy, t);
+			}
+		}
+	}
+
+	// Rerender
+	owner->game->board->renderChunks(
+		owner->game->board->chunksContainedBy((sf::Vector2u)getPosition(), (sf::Vector2u)getSize()));
 }
 
 void Building::setMaxHealth(float val, bool resetHealth)

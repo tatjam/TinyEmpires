@@ -32,6 +32,7 @@ struct ControlSettings
 	std::vector<Key> leftKeys = { ST_KEY::A, ST_KEY::Left };
 	std::vector<Key> incZoomKeys = { ST_KEY::R };
 	std::vector<Key> decZoomKeys = { ST_KEY::F };
+	std::vector<Key> mineKeys = { ST_KEY::M };
 };
 
 struct GameSettings

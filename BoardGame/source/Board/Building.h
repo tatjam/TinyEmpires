@@ -15,6 +15,7 @@ private:
 	sf::Vector2i pos;
 	sf::IntRect texRect;
 	sf::IntRect buildingTexRect;
+	sf::IntRect colorTexRect;
 
 	Board* attached;
 
@@ -60,12 +61,16 @@ public:
 
 	virtual void setTexRect(sf::IntRect nRect);
 	virtual void setBuildingTexRect(sf::IntRect nRect);
+	virtual void setColorTexRect(sf::IntRect nRect);
 
 	virtual sf::IntRect getTexRect();
 	virtual sf::IntRect getFinalRect(size_t tileSide);
 
 	virtual sf::IntRect getBuildingTexRect();
 	virtual sf::IntRect getBuildingFinalRect(size_t tileSide);
+
+	virtual sf::IntRect getColorTexRect();
+	virtual sf::IntRect getColorFinalRect(size_t tileSide);
 
 	virtual size_t getViewRadius();
 	virtual void setViewRadius(size_t i);
@@ -80,6 +85,8 @@ public:
 
 	// Internal update used for animations and such
 	void baseUpdate(float dt, Empire* owner); 
+
+	virtual Empire* getOwner() { return this->owner; }
 
 	// Called every frame (video frame)
 	// ONLY IF we are visible
@@ -98,8 +105,7 @@ public:
 	void end();
 
 	// Called when the building is destroyed
-	// Implement it yourself
-	virtual void die() {};
+	virtual void die();
 
 	virtual void setMaxHealth(float val, bool resetHealth = true);
 	virtual float getMaxHealth() { return maxHealth; }

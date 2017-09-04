@@ -70,7 +70,10 @@ struct Tile
 
 	// Building on top of this tile
 	Building* onTop = NULL;
+	// Entity which is static on the tile
 	Entity* entityOnTop = NULL;
+	// Entity which is moving past the tile
+	Entity* entityMovingSoon = NULL;
 
 	Tile(){}
 	Tile(FloorType floor, WallType wall)
@@ -238,14 +241,23 @@ public:
 
 	void generate(GenSettings setings);
 
+	size_t getChunkIndex(size_t x, size_t y);
+
+	// Gets all chunks contained by rect
+	std::vector<size_t> chunksContainedBy(sf::Vector2u start, sf::Vector2u size);
+
+	void renderChunk(size_t i);
+
+	void renderChunks(std::vector<size_t> chunks);
+
 	std::vector<sf::Vector2u> getNeighbors(sf::Vector2u tile, bool diagonal = false);
 
 	size_t findIndex(sf::Vector2u vec);
 
-	Path findPath(sf::Vector2u a, sf::Vector2u b, PathCosts costs = PathCosts(), size_t maxIterations = PATH_MAX_IT);
+	Path findPath(sf::Vector2u a, sf::Vector2u b, PathCosts costs = PathCosts(), size_t maxIterations = PATH_MAX_IT, Entity* we = NULL);
 
 	// Uses real distance
-	float pathDistance(sf::Vector2u a, sf::Vector2u b, PathCosts costs, bool ignoreEntity = false);
+	float pathDistance(sf::Vector2u a, sf::Vector2u b, PathCosts costs, bool ignoreEntity = false, Entity* we = NULL);
 
 	// Uses heuristic distance
 	float pathDistanceHeuristic(sf::Vector2u a, sf::Vector2u b);

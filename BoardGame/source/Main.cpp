@@ -35,8 +35,13 @@ int main(void)
 	game.start(&spriteSheet, 16);
 
 	game.addEmpire();
+	game.addEmpire();
 	Empire* empire = &game.empires[0];
+	Empire* empire2 = &game.empires[1];
+
 	House house = House(game.board);
+	house.build(1900);
+
 	Worker entity = Worker(empire);
 	entity.setPosition({ 7, 8 });
 
@@ -50,13 +55,14 @@ int main(void)
 	entity4.setPosition({ 6, 9 });
 
 	house.setPosition({ 4, 4 });
-	empire->buildings.push_back(&house);
+	empire2->buildings.push_back(&house);
 	empire->entities.push_back(&entity);
 	empire->entities.push_back(&entity2);
 	empire->entities.push_back(&entity3);
 	empire->entities.push_back(&entity4);
 
 	empire->color = sf::Color::Cyan;
+	empire2->color = sf::Color::Magenta;
 
 	house.start();
 

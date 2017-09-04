@@ -142,7 +142,7 @@ void GameState::userUpdate(float dt, sf::RenderWindow* win)
 			std::pair<Entity*, Order> order = ordersBeingGiven[ordersBeingGiven.size() - 1];
 			ordersBeingGiven.pop_back();
 
-			order.first->giveOrder(order.second.type, order.second.target);
+			order.first->giveOrder(order.second.type, order.second.target, order.second.moveTarget);
 			otimer = 0.0f;
 		}
 
@@ -152,6 +152,11 @@ void GameState::userUpdate(float dt, sf::RenderWindow* win)
 	cameraUpdate(dt, win);
 
 	// Mouse clicks
+
+	if (getAnyKeyDown(&sets->cSets.mineKeys))
+	{
+		inMine = true;
+	}
 
 	// Square selector
 	if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
@@ -165,8 +170,12 @@ void GameState::userUpdate(float dt, sf::RenderWindow* win)
 		}
 		else
 		{
+
 			if (!getAnyKeyDown(&sets->cSets.multiSelectKeys))
 			{
+
+				inMine = false;
+
 
 				entitiesOnly = false;
 
@@ -290,10 +299,56 @@ void GameState::userUpdate(float dt, sf::RenderWindow* win)
 				sf::Vector2f nAnimTargetf = win->mapPixelToCoords(nAnimTarget);
 				nAnimTarget = { (int)(nAnimTargetf.x / board->spriteSide), (int)(nAnimTargetf.y / board->spriteSide) };
 
+				Tile target = board->getTile((size_t)nAnimTarget.x, (size_t)nAnimTarget.y);
+
 				for (size_t i = 0; i < selected.size(); i++)
 				{
-					Order order; order.type = MOVE; order.target = nAnimTarget;
-					ordersBeingGiven.push_back(std::pair<Entity*, Order>(selected[i], order));
+					if (target.onTop != NULL)
+					{
+						if (target.onTop->getOwner() == &empires[0])
+						{
+							Order order; order.type = BUILD; order.target = nAnimTarget; order.moveTarget = nAnimTarget;
+							ordersBeingGiven.push_back(std::pair<Entity*, Order>(selected[i], order));
+							animType = 1;
+						}
+						else
+						{
+							Order order; order.type = ATTACK; order.target = nAnimTarget; order.moveTarget = nAnimTarget;
+							ordersBeingGiven.push_back(std::pair<Entity*, Order>(selected[i], order));
+							animType = 2;
+						}
+					}
+					else
+					{
+						if (target.resourceHealth > 0.0f && inMine)
+						{
+							// Adjust target to random adjacent tile
+							std::vector<sf::Vector2u> neighbors = board->getNeighbors((sf::Vector2u)nAnimTarget);
+							size_t index = rand() % neighbors.size();
+
+							Order order; order.type = MINE; order.target = nAnimTarget; 
+							order.moveTarget = (sf::Vector2i)neighbors[index];
+							ordersBeingGiven.push_back(std::pair<Entity*, Order>(selected[i], order));
+							animType = 3;
+						}
+						else
+						{
+							if (target.resourceHealth <= -1000.0f)
+							{
+								// Indicates resource that needs hauling
+								Order order; order.type = HAUL; order.target = nAnimTarget;
+								order.moveTarget = nAnimTarget;
+								ordersBeingGiven.push_back(std::pair<Entity*, Order>(selected[i], order));
+								animType = 3;
+							}
+							else
+							{
+								Order order; order.type = MOVE; order.target = nAnimTarget; order.moveTarget = nAnimTarget;
+								ordersBeingGiven.push_back(std::pair<Entity*, Order>(selected[i], order));
+								animType = 0;
+							}
+						}
+					}
 					//selected[i]->giveOrder(MOVE, nAnimTarget);
 				}
 
@@ -345,8 +400,17 @@ void GameState::draw(sf::RenderTarget* target)
 	for (size_t i = 0; i < empires.size(); i++)
 	{
 		empires[i].draw(target, board->spriteSheet, board->spriteSide);
-		empires[i].drawView(target);
+
 	}
+
+	for (size_t i = 0; i < empires.size(); i++)
+	{
+		empires[i].postDraw(target, board->spriteSheet, board->spriteSide);
+	}
+
+
+	empires[0].drawView(target);
+
 
 	if (inAnim)
 	{
@@ -354,31 +418,77 @@ void GameState::draw(sf::RenderTarget* target)
 		sf::Sprite arrow = sf::Sprite();
 		arrow.setTexture(*board->spriteSheet);
 		
+		size_t iMult = 0;
+
+		if (animType == 0)
+		{
+			iMult = 8;
+		}
+		if (animType == 1)
+		{
+			iMult = 6;
+		}
+		else if (animType == 2)
+		{
+			iMult = 7;
+		}
+		else if (animType == 3)
+		{
+			iMult = 6;
+		}
+		else
+		{
+			iMult = 8;
+		}
+
 		// Top left arrow
-		arrow.setTextureRect(sf::IntRect(14 * board->spriteSide, 8 * board->spriteSide, board->spriteSide, board->spriteSide));
+		arrow.setTextureRect(sf::IntRect(14 * board->spriteSide, iMult * board->spriteSide, board->spriteSide, board->spriteSide));
 		sf::Vector2f pos = { (animTarget.x - dist) * board->spriteSide, (animTarget.y - dist) * board->spriteSide };
 		arrow.setPosition(pos);
 		target->draw(arrow);
 
 		// Top right
-		arrow.setTextureRect(sf::IntRect(13 * board->spriteSide, 8 * board->spriteSide, board->spriteSide, board->spriteSide));
+		arrow.setTextureRect(sf::IntRect(13 * board->spriteSide, iMult * board->spriteSide, board->spriteSide, board->spriteSide));
 		pos = { (animTarget.x + dist) * board->spriteSide, (animTarget.y - dist) * board->spriteSide };
 		arrow.setPosition(pos);
 		target->draw(arrow);
 
 		// Bot left
-		arrow.setTextureRect(sf::IntRect(12 * board->spriteSide, 8 * board->spriteSide, board->spriteSide, board->spriteSide));
+		arrow.setTextureRect(sf::IntRect(12 * board->spriteSide, iMult * board->spriteSide, board->spriteSide, board->spriteSide));
 		pos = { (animTarget.x - dist) * board->spriteSide, (animTarget.y + dist) * board->spriteSide };
 		arrow.setPosition(pos);
 		target->draw(arrow);
 
 		// Bot right
-		arrow.setTextureRect(sf::IntRect(15 * board->spriteSide, 8 * board->spriteSide, board->spriteSide, board->spriteSide));
+		arrow.setTextureRect(sf::IntRect(15 * board->spriteSide, iMult * board->spriteSide, board->spriteSide, board->spriteSide));
 		pos = { (animTarget.x + dist) * board->spriteSide, (animTarget.y + dist) * board->spriteSide };
 		arrow.setPosition(pos);
 		target->draw(arrow);
 
 	}
+
+	// Draw selected path
+
+	sf::Sprite pather = sf::Sprite();
+	pather.setTexture(*board->spriteSheet);
+	pather.setTextureRect(sf::IntRect(15 * board->spriteSide, 0 * board->spriteSide, board->spriteSide, board->spriteSide));
+
+	/*
+	for (size_t i = 0; i < selected.size(); i++)
+	{
+		if (selected[i]->isOnPath())
+		{
+			for (size_t j = 0; j < selected[i]->getPath()->size(); j++)
+			{
+				srand(i);
+
+				sf::Vector2u p = selected[i]->getPath()->at(j);
+				pather.setPosition(p.x * board->spriteSide, p.y * board->spriteSide);
+				pather.setColor(sf::Color(rand(), rand(), rand()));
+				target->draw(pather);
+			}
+		}
+	}*/
 
 }
 

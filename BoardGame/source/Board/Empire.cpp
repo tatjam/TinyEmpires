@@ -20,7 +20,6 @@ void Empire::update(float dt)
 	{
 		buildings[i]->baseUpdate(dt, this);
 		buildings[i]->tick(dt, this);
-		buildings[i]->build(50.0f * dt);
 	}
 
 	for (size_t i = 0; i < entities.size(); i++)
@@ -33,8 +32,6 @@ void Empire::update(float dt)
 
 void Empire::draw(sf::RenderTarget* target, sf::Texture* spriteSheet, size_t tileSide)
 {
-
-
 	for (size_t i = 0; i < entities.size(); i++)
 	{
 		entities[i]->draw(target, spriteSheet, tileSide);
@@ -46,6 +43,16 @@ void Empire::draw(sf::RenderTarget* target, sf::Texture* spriteSheet, size_t til
 		buildings[i]->drawDamage(target, spriteSheet, tileSide);
 	}
 
+
+}
+
+void Empire::postDraw(sf::RenderTarget * target, sf::Texture * spriteSheet, size_t tileSide)
+{
+
+	for (size_t i = 0; i < entities.size(); i++)
+	{
+		entities[i]->postDraw(target, spriteSheet, tileSide);
+	}
 }
 
 void Empire::renderWholeView()
@@ -178,6 +185,17 @@ void Empire::drawView(sf::RenderTarget* target)
 	spr.setScale(game->board->spriteSide, game->board->spriteSide);
 
 	target->draw(spr);
+}
+
+void Empire::removeBuilding(Building* b)
+{
+	for (size_t i = 0; i < buildings.size(); i++)
+	{
+		if (buildings[i] == b)
+		{
+			buildings.erase(buildings.begin() + i);
+		}
+	}
 }
 
 void Empire::launchViewThread()

@@ -9,59 +9,86 @@ void Board::drawResource(Tile* t, size_t x, size_t y, sf::RenderTarget* target)
 
 	bool draw = false;
 
-	if (t->wall == NO_WALL)
+	// -999999 is what is set when resources are hauled away from site
+	if (t->wall == NO_WALL && t->resourceHealth >= -999999.0f)
 	{
-		if (t->wood != NONE)
+		if (t->resourceHealth <= -1000.0f)
 		{
-			if (t->variation)
+			// Draw resource holder
+			if (t->wood != NONE)
 			{
-				spr.setTextureRect(sf::IntRect(spriteSide * 1, spriteSide * 2, spriteSide, spriteSide));
+				spr.setTextureRect(sf::IntRect(spriteSide * 16, spriteSide * 2, spriteSide, spriteSide));
 			}
-			else
+			else if (t->food != NONE)
 			{
-				spr.setTextureRect(sf::IntRect(spriteSide * 0, spriteSide * 2, spriteSide, spriteSide));
+				spr.setTextureRect(sf::IntRect(spriteSide * 17, spriteSide * 2, spriteSide, spriteSide));
+			}
+			else if (t->metal != NONE)
+			{
+				spr.setTextureRect(sf::IntRect(spriteSide * 17, spriteSide * 2, spriteSide, spriteSide));
+			}
+			else if (t->tech != NONE)
+			{
+				spr.setTextureRect(sf::IntRect(spriteSide * 17, spriteSide * 2, spriteSide, spriteSide));
 			}
 
 			draw = true;
 		}
-		else if (t->metal != NONE)
+		else
 		{
-			if (t->metal == SMALL)
-			{
-				spr.setTextureRect(sf::IntRect(spriteSide * 6, spriteSide * 2, spriteSide, spriteSide));
-			}
-			else
-			{
-				spr.setTextureRect(sf::IntRect(spriteSide * 3, spriteSide * 2, spriteSide, spriteSide));
-			}
 
-			draw = true;
-		}
-		else if (t->tech != NONE)
-		{
-			if (t->tech == SMALL)
+			if (t->wood != NONE)
 			{
-				spr.setTextureRect(sf::IntRect(spriteSide * 5, spriteSide * 2, spriteSide, spriteSide));
-			}
-			else
-			{
-				spr.setTextureRect(sf::IntRect(spriteSide * 2, spriteSide * 2, spriteSide, spriteSide));
-			}
+				if (t->variation)
+				{
+					spr.setTextureRect(sf::IntRect(spriteSide * 1, spriteSide * 2, spriteSide, spriteSide));
+				}
+				else
+				{
+					spr.setTextureRect(sf::IntRect(spriteSide * 0, spriteSide * 2, spriteSide, spriteSide));
+				}
 
-			draw = true;
-		}
-		else if (t->food != NONE)
-		{
-			if (t->food == SMALL)
-			{
-				spr.setTextureRect(sf::IntRect(spriteSide * 7, spriteSide * 2, spriteSide, spriteSide));
+				draw = true;
 			}
-			else
+			else if (t->metal != NONE)
 			{
-				spr.setTextureRect(sf::IntRect(spriteSide * 4, spriteSide * 2, spriteSide, spriteSide));
-			}
+				if (t->metal == SMALL)
+				{
+					spr.setTextureRect(sf::IntRect(spriteSide * 6, spriteSide * 2, spriteSide, spriteSide));
+				}
+				else
+				{
+					spr.setTextureRect(sf::IntRect(spriteSide * 3, spriteSide * 2, spriteSide, spriteSide));
+				}
 
-			draw = true;
+				draw = true;
+			}
+			else if (t->tech != NONE)
+			{
+				if (t->tech == SMALL)
+				{
+					spr.setTextureRect(sf::IntRect(spriteSide * 5, spriteSide * 2, spriteSide, spriteSide));
+				}
+				else
+				{
+					spr.setTextureRect(sf::IntRect(spriteSide * 2, spriteSide * 2, spriteSide, spriteSide));
+				}
+
+				draw = true;
+			}
+			else if (t->food != NONE)
+			{
+				if (t->food == SMALL)
+				{
+					spr.setTextureRect(sf::IntRect(spriteSide * 7, spriteSide * 2, spriteSide, spriteSide));
+				}
+				else
+				{
+					spr.setTextureRect(sf::IntRect(spriteSide * 4, spriteSide * 2, spriteSide, spriteSide));
+				}
+
+				draw = true;
+			}
 		}
 
 		if (draw)
@@ -442,7 +469,7 @@ void Board::setTile(size_t x, size_t y, Tile t, bool reRender)
 
 Tile Board::getTile(size_t x, size_t y)
 {
-	if (x > width || y > height)
+	if (x >= width || y >= height || chunks.size() <= 0)
 	{
 		return nullTile;
 	}
@@ -458,6 +485,8 @@ Tile Board::getTile(size_t x, size_t y)
 		size_t offX = x - (chunkX * CHUNK_WIDTH);
 		size_t offY = y - (chunkY * CHUNK_HEIGHT);
 		size_t offI = offY * CHUNK_WIDTH + offX;
+
+		chunkI %= cwidth * cheight;
 
 		Chunk* c = &chunks[chunkI];
 		return c->at(offI);
@@ -477,6 +506,65 @@ void Board::generate(GenSettings settings)
 	std::cout << "075% - ";
 	placeResources(settings);
 	std::cout << "100% - Completed" << std::endl;
+}
+
+size_t Board::getChunkIndex(size_t x, size_t y)
+{
+	if (x >= width || y >= height)
+	{
+		return 0;
+	}
+	else
+	{
+		x %= width;
+		y %= height;
+
+		size_t chunkX = x / CHUNK_WIDTH;
+		size_t chunkY = y / CHUNK_WIDTH;
+		size_t chunkI = chunkY * cwidth + chunkX;
+		return chunkI;
+	}
+}
+
+std::vector<size_t> Board::chunksContainedBy(sf::Vector2u start, sf::Vector2u size)
+{
+	std::vector<size_t> out;
+
+	for (size_t x = start.x; x < start.x + size.x; x++)
+	{
+		for (size_t y = start.y; y < start.y + size.y; y++)
+		{
+			size_t n = getChunkIndex(x, y);
+			if (!(std::find(out.begin(), out.end(), n) != out.end()))
+			{
+				// Not contained, add it!
+				out.push_back(n);
+			}
+		}
+	}
+
+	return out;
+}
+
+void Board::renderChunk(size_t i)
+{
+	if (i < cwidth * cheight) 
+	{
+		target->clear();
+		renderChunk(i, target);
+		target->display();
+
+		sf::Texture nTex = target->getTexture();
+		renderedChunks[i] = nTex;
+	}
+}
+
+void Board::renderChunks(std::vector<size_t> chunks)
+{
+	for (size_t i = 0; i < chunks.size(); i++)
+	{
+		renderChunk(chunks[i]);
+	}
 }
 
 std::vector<sf::Vector2u> Board::getNeighbors(sf::Vector2u tile, bool diagonal)
@@ -513,7 +601,7 @@ size_t Board::findIndex(sf::Vector2u vec)
 	return (vec.y * width + vec.x);
 }
 
-Path Board::findPath(sf::Vector2u start, sf::Vector2u end, PathCosts costs, size_t maxIterations)
+Path Board::findPath(sf::Vector2u start, sf::Vector2u end, PathCosts costs, size_t maxIterations, Entity* we)
 {
 
 	// Implemented the pseudocode from wikipedia
@@ -529,15 +617,43 @@ Path Board::findPath(sf::Vector2u start, sf::Vector2u end, PathCosts costs, size
 
 		// First check for reachability of goal to stop very long searches
 		// Fast check, check that neighbor tiles to start and end are walkable
-		std::vector<sf::Vector2u> startNeighbors = getNeighbors(start);
-		std::vector<sf::Vector2u> endNeighbors = getNeighbors(end);
+
 		
-		if (pathDistance(start, start, costs, true) == INFINITY || pathDistance(end, end, costs, false) == INFINITY)
+		size_t iterations = 0;
+
+		int xOff = -1;
+		int yOff = -1;
+
+		if (start.x > end.x) { xOff = 1; }
+		if (start.y > end.y) { yOff = 1; }
+		if (start.x == end.x) { xOff = 0; }
+		if (start.y == end.y) { yOff = 0;}
+
+		if (pathDistance(start, start, costs, true) == INFINITY)
 		{
 			return out;
 		}
 
+		while(pathDistance(end, end, costs, false, we) == INFINITY)
+		{
+			// Move end towards start
+
+			if ((int)end.x + xOff < 0){	xOff = 0;}
+			if ((int)end.y + yOff < 0) { yOff = 0; }
+			end.x += xOff;
+			end.y += yOff;
+
+			iterations++;
+			if (iterations > 25)
+			{
+				return out;
+			}
+		}
+
 		bool any = false;
+
+		std::vector<sf::Vector2u> startNeighbors = getNeighbors(start);
+		std::vector<sf::Vector2u> endNeighbors = getNeighbors(end);
 
 		for (size_t i = 0; i < startNeighbors.size(); i++)
 		{
@@ -572,6 +688,12 @@ Path Board::findPath(sf::Vector2u start, sf::Vector2u end, PathCosts costs, size
 			return out;
 		}
 
+		if (start == end)
+		{
+			out.clear();
+			return out;
+		}
+
 		std::vector<sf::Vector2u> closed;
 
 		std::vector<sf::Vector2u> frontier;
@@ -590,7 +712,7 @@ Path Board::findPath(sf::Vector2u start, sf::Vector2u end, PathCosts costs, size
 		cameFrom.resize(width * height);
 
 
-		size_t iterations = 0;
+		iterations = 0;
 
 
 		first_it = false;
@@ -621,12 +743,16 @@ Path Board::findPath(sf::Vector2u start, sf::Vector2u end, PathCosts costs, size
 
 				bool done = false;
 
+				iterations = 0;
+
 				while (!done)
 				{
 					current = cameFrom[findIndex(current)];
 
+					iterations++;
+
 					// End early to not include start point
-					if (current == start)
+					if (current == start || iterations >= maxIterations * 2)
 					{
 						done = true;
 						break;
@@ -932,11 +1058,13 @@ void Board::placeResources(GenSettings settings)
 				{
 					we.wood = SMALL;
 					placed = true;
+					we.resourceHealth = 400.0f;
 				}
 				else if (forest > wood + 0.15f)
 				{
 					we.wood = BIG;
 					placed = true;
+					we.resourceHealth = 900.0f;
 				}
 			}
 
@@ -947,11 +1075,13 @@ void Board::placeResources(GenSettings settings)
 					// Place tech
 					we.tech = SMALL;
 					placed = true;
+					we.resourceHealth = 2500.0f;
 				}
 				else if (rand() % 1000 > (int)settings.btech)
 				{
 					we.tech = BIG;
 					placed = true;
+					we.resourceHealth = 5000.0f;
 				}
 			}
 
@@ -962,11 +1092,13 @@ void Board::placeResources(GenSettings settings)
 					// Place metal
 					we.metal = SMALL;
 					placed = true;
+					we.resourceHealth = 1000.0f;
 				}
 				else if (rand() % 1000 > (int)settings.bmetal)
 				{
 					we.metal = BIG;
 					placed = true;
+					we.resourceHealth = 2500.0f;
 				}
 			}
 
@@ -977,11 +1109,13 @@ void Board::placeResources(GenSettings settings)
 					// Place food
 					we.food = SMALL;
 					placed = true;
+					we.resourceHealth = 50.0f;
 				}
 				else if (rand() % 1000 > (int)settings.bfood)
 				{
 					we.food = BIG;
 					placed = true;
+					we.resourceHealth = 100.0f;
 				}
 			}
 
@@ -990,6 +1124,7 @@ void Board::placeResources(GenSettings settings)
 			{
 				we.variation = true;
 			}
+
 
 			setTile(x, y, we);
 
@@ -1001,7 +1136,7 @@ void Board::placeResources(GenSettings settings)
 
 
 
-float Board::pathDistance(sf::Vector2u a, sf::Vector2u b, PathCosts costs, bool ignoreEntity)
+float Board::pathDistance(sf::Vector2u a, sf::Vector2u b, PathCosts costs, bool ignoreEntity, Entity* we)
 {
 	// Find distance
 	if (a.x > width || a.y > height || b.x > width || b.y > height)
@@ -1020,7 +1155,7 @@ float Board::pathDistance(sf::Vector2u a, sf::Vector2u b, PathCosts costs, bool 
 		// Add costs
 		Tile target = getTile(b.x, b.y);
 
-		if (target.entityOnTop != NULL && !ignoreEntity)
+		if (target.entityOnTop != NULL && target.entityOnTop != we && !ignoreEntity)
 		{
 			dist = INFINITY;
 		}

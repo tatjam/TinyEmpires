@@ -12,13 +12,15 @@ enum OrderType
 	MOVE,
 	ATTACK,
 	BUILD,
-	MINE
+	MINE,
+	HAUL
 };
 
 struct Order
 {
 	OrderType type = NO_ORDER;
 	sf::Vector2i target;
+	sf::Vector2i moveTarget;
 };
 
 class Entity
@@ -76,6 +78,14 @@ private:
 
 	float timeWaited = 0.0f;
 
+	float timeInStaticPath = 0.0f;
+
+	sf::Vector2i prevPos;
+
+	sf::Vector2i originalTarget;
+
+	bool finalMove = false;
+
 public:
 
 	virtual sf::Vector2i getPosition();
@@ -95,6 +105,8 @@ public:
 	virtual void fillView();
 
 	virtual void draw(sf::RenderTarget* target, sf::Texture* spriteSheet, size_t tileSide);
+
+	virtual void postDraw(sf::RenderTarget* target, sf::Texture* spriteSheet, size_t tileSide) {}
 
 	// Called when you are clicked on
 	// selector is always the player's empire
@@ -118,7 +130,7 @@ public:
 	// damage can be used to heal too!
 	virtual void damage(int damage);
 
-	virtual void giveOrder(OrderType order, sf::Vector2i target);
+	virtual void giveOrder(OrderType order, sf::Vector2i target, sf::Vector2i moveTarget);
 
 	virtual void finishOrder();
 
@@ -197,4 +209,4 @@ public:
 
 // Threaded path computing
 void computePath(Empire* owner, std::vector<sf::Vector2u>* out, 
-	sf::Vector2u from, sf::Vector2u to, PathCosts costs, bool* finished);
+	sf::Vector2u from, sf::Vector2u to, PathCosts costs, bool* finished, Entity* thisEntity);

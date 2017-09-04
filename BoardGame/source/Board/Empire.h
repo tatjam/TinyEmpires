@@ -56,11 +56,13 @@ public:
 
 	void update(float dt);
 	void draw(sf::RenderTarget* target, sf::Texture* spriteSheet, size_t tileSide);
+	void postDraw(sf::RenderTarget* target, sf::Texture* spriteSheet, size_t tileSide);
 
 	void renderWholeView();
 	void updateView();
 	void drawView(sf::RenderTarget* target);
 
+	void removeBuilding(Building* b);
 
 	void launchViewThread();
 

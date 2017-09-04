@@ -47,6 +47,12 @@ private:
 
 	bool inAnim = false;
 
+	// 0 - Move
+	// 1 - Build
+	// 2 - Attack
+	// 3 - Mine
+	size_t animType = 0;
+
 	sf::Vector2i animTarget;
 
 	bool held = false;
@@ -54,6 +60,8 @@ private:
 	std::vector<std::pair<Entity*, Order>> ordersBeingGiven;
 
 	float otimer = 0.0f;
+
+	bool inMine = false;
 
 public:
 
